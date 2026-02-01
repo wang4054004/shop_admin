@@ -10,12 +10,21 @@
       </el-col>
       <el-col :lg="8" :md="12" class="login-form">
         <h2>登录</h2>
-        <el-form :model="loginForm" :rules="rules">
+        <el-form :model="loginForm" :rules="rules" @keyup.enter="login">
           <el-form-item prop="username">
-            <el-input v-model="loginForm.username" placeholder="请输入用户名" :prefix-icon="User" />
+            <el-input
+              v-model="loginForm.username"
+              placeholder="请输入用户名"
+              :prefix-icon="User"
+            />
           </el-form-item>
           <el-form-item prop="password">
-            <el-input v-model="loginForm.password" placeholder="请输入密码" type="password" :prefix-icon="Lock" />
+            <el-input
+              v-model="loginForm.password"
+              placeholder="请输入密码"
+              type="password"
+              :prefix-icon="Lock"
+            />
           </el-form-item>
           <el-form-item>
             <el-button type="primary" @click="login">登录</el-button>
@@ -31,7 +40,10 @@ import { reactive } from "vue";
 import { User, Lock } from "@element-plus/icons-vue";
 import router from "~/router";
 import { loginapi } from "~/api/login";
-import { ElNotification } from 'element-plus'
+import { ElNotification } from "element-plus";
+import { useUserStore } from "~/store";
+const userStore = useUserStore();
+
 const rules = reactive({
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
@@ -50,22 +62,31 @@ const login = () => {
       // alert("登录成功");
       ElNotification({
         // title: 'Error',
-        message: '登陆成功',
-        type: 'success',
+        message: "登陆成功",
+        type: "success",
         duration: 500,
-
-      })
-      router.push("/");
+        onClose: () => {
+          userStore.setToken(res.data.token);
+          console.log(userStore.token);
+          userStore.setUserInfo({
+            id: Date.now().toString(),
+            name: loginForm.username,
+            avatar: "",
+            role: "1",
+          });
+          console.log(userStore.userInfo);
+          router.push("/");
+        },
+      });
     } else {
       ElNotification({
         // title: 'Error',
         message: res.msg,
-        type: 'error',
-      })
+        type: "error",
+      });
     }
   });
 };
-
 </script>
 
 <style scoped>
@@ -83,9 +104,7 @@ const login = () => {
   /* 水平居中对齐 */
   align-items: center;
   /* 垂直居中对齐 */
-  background: linear-gradient(135deg,
-      #667eea 0%,
-      #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   /* 设置渐变背景 */
   padding: 20px;
   /* 设置内边距，防止内容溢出 */
@@ -239,9 +258,7 @@ const login = () => {
   /* 设置字体粗细为600 */
   width: 100%;
   /* 设置宽度为100% */
-  background: linear-gradient(135deg,
-      #667eea 0%,
-      #764ba2 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   /* 设置渐变背景 */
   border: none;
   /* 去除边框 */
