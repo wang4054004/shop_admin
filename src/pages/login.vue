@@ -24,10 +24,17 @@
               placeholder="请输入密码"
               type="password"
               :prefix-icon="Lock"
+              show-password
             />
           </el-form-item>
           <el-form-item>
-            <el-button type="primary" @click="login">登录</el-button>
+            <el-button
+              type="primary"
+              @click="login"
+              :loading="loginLoading"
+              :disabled="loginLoading"
+              >登录</el-button
+            >
           </el-form-item>
         </el-form>
       </el-col>
@@ -36,14 +43,12 @@
 </template>
 
 <script setup lang="ts">
-import { reactive } from "vue";
+import { ref, reactive } from "vue";
 import { User, Lock } from "@element-plus/icons-vue";
-import router from "~/router";
-import { loginapi } from "~/api/login";
-import { ElNotification } from "element-plus";
 import { useUserStore } from "~/store";
+import { handleError } from "~/utils/information";
 const userStore = useUserStore();
-
+const loginLoading = ref(false);
 const rules = reactive({
   username: [{ required: true, message: "请输入用户名", trigger: "blur" }],
   password: [{ required: true, message: "请输入密码", trigger: "blur" }],
@@ -56,36 +61,17 @@ const login = () => {
     alert("请输入用户名和密码");
     return;
   }
-  loginapi(loginForm.username, loginForm.password).then((res) => {
-    console.log(res);
-    if (res.msg === "ok") {
-      // alert("登录成功");
-      ElNotification({
-        // title: 'Error',
-        message: "登陆成功",
-        type: "success",
-        duration: 500,
-        onClose: () => {
-          userStore.setToken(res.data.token);
-          console.log(userStore.token);
-          userStore.setUserInfo({
-            id: Date.now().toString(),
-            name: loginForm.username,
-            avatar: "",
-            role: "1",
-          });
-          console.log(userStore.userInfo);
-          router.push("/");
-        },
-      });
-    } else {
-      ElNotification({
-        // title: 'Error',
-        message: res.msg,
-        type: "error",
-      });
-    }
-  });
+  loginLoading.value = true;
+  try {
+    userStore.login({
+      username: loginForm.username,
+      password: loginForm.password,
+    });
+  } catch (error) {
+    handleError(error, "error");
+  } finally {
+    loginLoading.value = false;
+  }
 };
 </script>
 

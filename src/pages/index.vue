@@ -1,6 +1,7 @@
 <template>
   <div>
     <h1>Hello Index</h1>
+    <button @click="logout">退出登录</button>
   </div>
 </template>
 
@@ -11,6 +12,11 @@ import { onMounted } from "vue";
 import { ElNotification } from "element-plus";
 
 const userStore = useUserStore();
+
+const logout = () => {
+  userStore.logout();
+  router.push("/login");
+};
 
 onMounted(() => {
   if (!userStore.isLoggedIn) {
